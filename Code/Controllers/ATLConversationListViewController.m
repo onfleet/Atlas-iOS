@@ -48,9 +48,6 @@ static UIView *ATLMakeLoadingMoreConversationsIndicatorView()
 @property (nonatomic) BOOL hasAppeared;
 @property (nonatomic) BOOL showingMoreConversationsIndicator;
 @property (nonatomic, readwrite) UISearchController *searchController;
-@property (nonatomic) NSMutableArray *insertedRowIndexPaths;
-@property (nonatomic) NSMutableArray *deletedRowIndexPaths;
-@property (nonatomic) NSMutableArray *updatedRowIndexPaths;
 
 @end
 
@@ -133,7 +130,7 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
         self.searchController.searchResultsUpdater = self;
         self.searchController.dimsBackgroundDuringPresentation = NO;
-
+        
         // UISearchBar
         self.searchController.searchBar.delegate = self;
         self.searchController.searchBar.translucent = NO;
@@ -513,39 +510,15 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
           forChangeType:(LYRQueryControllerChangeType)type
            newIndexPath:(NSIndexPath *)newIndexPath
 {
-    switch (type) {
-        case LYRQueryControllerChangeTypeInsert:
-            [self.insertedRowIndexPaths addObject:newIndexPath];
-            break;
-        case LYRQueryControllerChangeTypeUpdate:
-            [self.updatedRowIndexPaths addObject:indexPath];
-            break;
-        case LYRQueryControllerChangeTypeMove:
-            [self.deletedRowIndexPaths addObject:indexPath];
-            [self.insertedRowIndexPaths addObject:newIndexPath];
-            break;
-        case LYRQueryControllerChangeTypeDelete:
-            [self.deletedRowIndexPaths addObject:indexPath];
-            break;
-        default:
-            break;
-    }
+    
 }
 
 - (void)queryControllerDidChangeContent:(LYRQueryController *)queryController
 {
-    [self.tableView beginUpdates];
-    [self.tableView deleteRowsAtIndexPaths:self.deletedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
-    [self.tableView insertRowsAtIndexPaths:self.insertedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
-    [self.tableView reloadRowsAtIndexPaths:self.updatedRowIndexPaths withRowAnimation:UITableViewRowAnimationAutomatic];
-    [self.tableView endUpdates];
-    
-    self.insertedRowIndexPaths = nil;
-    self.deletedRowIndexPaths = nil;
-    self.updatedRowIndexPaths = nil;
+    [self.tableView reloadData];
     
     [self configureLoadingMoreConversationsIndicatorView];
-
+    
     if (self.conversationSelectedBeforeContentChange) {
         NSIndexPath *indexPath = [self.queryController indexPathForObject:self.conversationSelectedBeforeContentChange];
         if (indexPath) {
@@ -553,21 +526,6 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         }
         self.conversationSelectedBeforeContentChange = nil;
     }
-}
-
-- (NSMutableArray *)insertedRowIndexPaths
-{
-    return _insertedRowIndexPaths ?: (_insertedRowIndexPaths = [[NSMutableArray alloc] init]);
-}
-
-- (NSMutableArray *)deletedRowIndexPaths
-{
-    return _deletedRowIndexPaths ?: (_deletedRowIndexPaths = [[NSMutableArray alloc] init]);
-}
-
-- (NSMutableArray *)updatedRowIndexPaths
-{
-    return _updatedRowIndexPaths ?: (_updatedRowIndexPaths = [[NSMutableArray alloc] init]);
 }
 
 #pragma mark - UIScrollViewDelegate
@@ -616,7 +574,7 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         return;
     }
     self.showingMoreConversationsIndicator = moreConversationsAvailable;
-
+    
     // The indicator view is installed as the table's footer view. When no indicator is needed, install an empty view. This is required in order to suppress the dummy separator lines that UITableView draws to simulate empty rows.
     self.tableView.tableFooterView = self.showingMoreConversationsIndicator ? ATLMakeLoadingMoreConversationsIndicatorView() : [[UIView alloc] init];
 }
@@ -634,9 +592,9 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
         [self.delegate conversationListViewController:self didSearchForText:searchString completion:^(NSSet *filteredParticipants) {
             if (![searchString isEqualToString:self.searchController.searchBar.text]) return;
             NSSet *participantIdentifiers = [filteredParticipants valueForKey:@"userID"];
-
+            
             LYRPredicate *predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:participantIdentifiers];
-
+            
             [self updateQueryControllerWithPredicate: predicate];
         }];
     }
@@ -702,3 +660,4 @@ NSString *const ATLConversationListViewControllerDeletionModeEveryone = @"Everyo
 }
 
 @end
+

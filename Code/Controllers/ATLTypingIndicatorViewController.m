@@ -43,16 +43,16 @@
     _backgroundGradientLayer.startPoint = CGPointZero;
     _backgroundGradientLayer.endPoint = CGPointMake(0, 1);
     _backgroundGradientLayer.colors = @[
-                                        (id)[UIColor colorWithWhite:1.0 alpha:0.0].CGColor,
-                                        (id)[UIColor colorWithWhite:1.0 alpha:0.75].CGColor,
-                                        (id)[UIColor colorWithWhite:1.0 alpha:1.0].CGColor
+                                        (id)[UIColor colorWithWhite:0.0 alpha:0.0].CGColor,
+                                        (id)[UIColor colorWithWhite:0.0 alpha:0.15].CGColor,
+                                        (id)[UIColor colorWithWhite:0.0 alpha:0.3].CGColor
                                         ];
     [self.view.layer addSublayer:_backgroundGradientLayer];
     
     _label = [[UILabel alloc] init];
     _label.translatesAutoresizingMaskIntoConstraints = NO;
     _label.font = ATLMediumFont(12);
-    _label.textColor = [UIColor grayColor];
+    _label.textColor = [UIColor colorWithWhite:1.0 alpha:0.7];
     _label.numberOfLines = 1;
     _label.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:_label];
